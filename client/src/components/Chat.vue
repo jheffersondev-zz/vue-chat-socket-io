@@ -110,6 +110,21 @@ export default {
           _this.messages = response.data.sort((a, b) =>
             a.datetime.localeCompare(b.datetime)
           );
+
+          _this.messages.map((msg) => {
+            if (moment(msg.datetime).isSame(moment(), "day")) {
+              //today
+              msg.datetime = moment(msg.datetime).format("HH:mm");
+            } else if (
+              moment(msg.datetime).isSame(moment().subtract(1, "day"), "day")
+            ) {
+              // yesterday
+              msg.datetime = `Ontem - ${moment(msg.datetime).format("HH:mm")}`;
+            } else {
+              //some days ago
+              msg.datetime = moment(msg.datetime).format("DD/MM/YYYY");
+            }
+          });
         }
       })
       .catch(function (error) {
@@ -125,13 +140,16 @@ export default {
 
   mounted() {
     this.socket.on("userMessage", (data) => {
-      console.log(data);
       this.messages.push({
         author: data.author,
         avatar: data.avatar,
         content: data.content,
-        datetime: moment(data.datetime).fromNow(),
+        datetime: moment(data.datetime).format("HH:mm"),
       });
+    });
+
+    this.socket.on("newUserJoinedToChat", (username) => {
+      console.log(`${username} joined to chat`);
     });
   },
 
@@ -164,12 +182,13 @@ export default {
         avatar:
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcZsL6PVn0SNiabAKz7js0QknS2ilJam19QQ&usqp=CAU",
         content: this.value,
-        datetime: moment().fromNow(),
+        datetime: moment().format("HH:mm"),
       });
 
       this.socket.emit("newMessage", {
         author: this.username,
         content: this.value,
+        // datetime: moment(),
         datetime: moment(),
       });
 

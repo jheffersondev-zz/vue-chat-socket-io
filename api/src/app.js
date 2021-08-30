@@ -6,46 +6,46 @@ const server = http.createServer(app);
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
 const { MongoClient } = require("mongodb");
 const client = new MongoClient("mongodb://localhost:27017");
 
-client.connect()
+client.connect();
 const db = client.db("school-friends-chat");
-const Messages = db.collection('messages');
-
+const Messages = db.collection("messages");
 
 app.get("/messages", async (req, res) => {
   const messages = await Messages.find({}).toArray();
-  return res.json(messages)
+  return res.json(messages);
 });
-
 
 app.get("/clear", async (req, res) => {
-  const messages = await Messages.deleteMany({})
-  return res.json("deleted")
+  const messages = await Messages.deleteMany({});
+  return res.json("deleted");
 });
 
-
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   console.log(`new client connected ${socket.id}`);
 
-  socket.on('newMessage', async (data) => {
+  socket.on("newUserRegistered", (username) => {
+    socket.broadcast.emit("newUserJoinedToChat", username);
+  })
+
+  socket.on("newMessage", async (data) => {
     let message = {
-      author: data.author, 
-      avatar: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcZsL6PVn0SNiabAKz7js0QknS2ilJam19QQ&usqp=CAU",
-      content: data.content, 
+      author: data.author,
+      avatar:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcZsL6PVn0SNiabAKz7js0QknS2ilJam19QQ&usqp=CAU",
+      content: data.content,
       datetime: data.datetime,
-    }
+    };
 
     await Messages.insertOne(message);
     socket.broadcast.emit("userMessage", message);
   });
-  
-})
+});
 
-server.listen(3000, () => console.log("[+] Server started"))
-
+server.listen(3000, () => console.log("[+] Server started"));

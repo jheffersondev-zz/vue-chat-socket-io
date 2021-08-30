@@ -26,9 +26,13 @@
 </template>
 
 <script>
+import io from "socket.io-client";
+const URL = "//localhost:3000";
+
 export default {
   data() {
     return {
+      socket: io(URL),
       formLayout: "horizontal",
       form: this.$form.createForm(this, { name: "coordinated" }),
       name: null,
@@ -39,8 +43,8 @@ export default {
       e.preventDefault();
       this.form.validateFields((err, values) => {
         if (!err) {
-          // this.$store.dispatch("SetUsername", values.name);
           localStorage.setItem("username", values.name);
+          this.socket.emit("newUserRegistered", values.name);
           this.$router.push({ path: "/chat" });
         }
       });

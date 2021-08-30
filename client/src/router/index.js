@@ -8,6 +8,13 @@ Vue.use(VueRouter)
 
 const routes = [
   {
+    path: '/',
+    beforeEnter(to, from, next){
+      localStorage.setItem("username", null);
+      next({path: '/login'})
+    }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Login
@@ -37,7 +44,6 @@ const routes = [
       } else{
         next()
       }
-
     }
   }
 ]
