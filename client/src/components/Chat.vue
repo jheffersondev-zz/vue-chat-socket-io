@@ -78,11 +78,13 @@ import moment from "moment";
 import axios from "axios";
 import io from "socket.io-client";
 
+const URL = "//localhost:3000";
+
 export default {
   data() {
     return {
       username: null,
-      socket: io("//73d4-45-166-25-175.ngrok.io"),
+      socket: io(URL),
       messages: [],
       submitting: false,
       disabledBtn: true,
@@ -92,14 +94,13 @@ export default {
   },
 
   beforeCreate() {
-    this.moment.locale("pt-br");
     this.form = this.$form.createForm(this, { name: "normal_login" });
-    if (
-      localStorage.getItem("username") == null ||
-      localStorage.getItem("username").length == 0
-    ) {
-      this.$router.push("login");
-    }
+    // if (
+    //   localStorage.getItem("username") == null ||
+    //   localStorage.getItem("username").length == 0
+    // ) {
+    //   this.$router.push("login");
+    // }
   },
 
   created() {
@@ -107,7 +108,7 @@ export default {
     this.username = localStorage.getItem("username");
 
     axios
-      .get("http://73d4-45-166-25-175.ngrok.io/messages")
+      .get(`${URL}/messages`)
       .then(function (response) {
         if (response.data.length > 0) {
           _this.messages = response.data.sort((a, b) =>
