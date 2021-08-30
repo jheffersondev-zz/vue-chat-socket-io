@@ -52,12 +52,14 @@
               placeholder="Digite sua mensagem"
               spellcheck="false"
               @change="handleChange"
+              @keyup="EventOnTypingMessage"
             />
           </a-form-item>
           <a-form-item>
             <a-button
               html-type="submit"
               :loading="submitting"
+              ref="submitBtn"
               type="primary"
               @click="handleSubmit"
               :disabled="disabledBtn"
@@ -95,12 +97,6 @@ export default {
 
   beforeCreate() {
     this.form = this.$form.createForm(this, { name: "normal_login" });
-    // if (
-    //   localStorage.getItem("username") == null ||
-    //   localStorage.getItem("username").length == 0
-    // ) {
-    //   this.$router.push("login");
-    // }
   },
 
   created() {
@@ -147,30 +143,39 @@ export default {
           this.$el.querySelector(".messages-box").scrollHeight;
       });
     },
+
+    EventOnTypingMessage(e) {
+      let value = e.target.value;
+
+      if (e.keyCode === 13) {
+        if (value.trim().length > 0) {
+          this.$refs.submitBtn.$el.click();
+        }
+      }
+    },
+
     handleSubmit(e) {
       e.preventDefault();
       this.submitting = true;
 
-      setTimeout(() => {
-        this.submitting = false;
-        this.messages.push({
-          author: this.username,
-          avatar:
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcZsL6PVn0SNiabAKz7js0QknS2ilJam19QQ&usqp=CAU",
-          content: this.value,
-          datetime: moment().fromNow(),
-        });
+      this.submitting = false;
+      this.messages.push({
+        author: this.username,
+        avatar:
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcZsL6PVn0SNiabAKz7js0QknS2ilJam19QQ&usqp=CAU",
+        content: this.value,
+        datetime: moment().fromNow(),
+      });
 
-        this.socket.emit("newMessage", {
-          author: this.username,
-          content: this.value,
-          datetime: moment(),
-        });
+      this.socket.emit("newMessage", {
+        author: this.username,
+        content: this.value,
+        datetime: moment(),
+      });
 
-        this.value = "";
-        this.disabledBtn = true;
-        this.scrollConversation();
-      }, 500);
+      this.value = "";
+      this.disabledBtn = true;
+      this.scrollConversation();
     },
 
     handleChange(e) {

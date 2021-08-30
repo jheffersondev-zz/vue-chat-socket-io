@@ -13,13 +13,26 @@ const routes = [
     component: Login
   },
   {
+    path: '/logout',
+    name: "Logout",
+    beforeEnter(to, from, next){
+      localStorage.setItem("username", null);
+      next({path: '/login'})
+    }
+  },
+  {
     path: '/chat',
     name: 'Chat',
     component: Chat,
     beforeEnter: (to, from, next) => {
       let username = localStorage.getItem("username");
 
-      if (username == null || username == undefined || username.length == 0){
+      if (
+        username == "null" || 
+        username == null || 
+        username == undefined || 
+        username.length == 0
+      ){
         next({path: "/login"})
       } else{
         next()
