@@ -20,30 +20,29 @@
         <a-list
           v-if="messages.length > 0"
           :data-source="messages"
-          item-layout="horizontal"
+          item-layout="vertical"
         >
           <a-list-item
             slot="renderItem"
             slot-scope="item"
             class="message"
           >
+
             <a-comment
               :author="item.author"
               :avatar="item.avatar"
               :content="item.content"
               :datetime="item.datetime"
-            />
+            >
+            </a-comment>
+
           </a-list-item>
+
         </a-list>
       </div>
-
+      <a-tag v-if="someoneTyping.username">{{someoneTyping.username}} digitando..</a-tag>
       <!-- Write area -->
       <a-comment>
-        <a-avatar
-          slot="avatar"
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcZsL6PVn0SNiabAKz7js0QknS2ilJam19QQ&usqp=CAU"
-          alt="Han Solo"
-        />
         <div slot="content">
           <a-form-item>
             <a-textarea
@@ -91,6 +90,10 @@ export default {
       submitting: false,
       disabledBtn: true,
       value: "",
+      someoneTyping: {
+        username: null,
+        lastUpdate: null,
+      },
       moment,
     };
   },
@@ -149,14 +152,30 @@ export default {
     });
 
     this.socket.on("newUserJoinedToChat", (username) => {
-      console.log(`${username} joined to chat`);
+      this.$message.success(`${username} entrou na conversa`);
+    });
+
+    // verify if someone is typing
+    setInterval(() => {
+      if (this.someoneTyping.username != null) {
+        if (parseInt(Date.now() - this.someoneTyping.lastUpdate) > 2000) {
+          this.someoneTyping.username = null;
+          this.someoneTyping.lastUpdate = null;
+        }
+      }
+    }, 100);
+
+    this.socket.on("userTyping", (username) => {
+      this.someoneTyping.username = username;
+      this.someoneTyping.lastUpdate = Date.now();
+
+      console.log(`${username} ta digitando`);
     });
   },
 
   methods: {
     scrollConversation() {
       this.$nextTick(() => {
-        //
         this.$refs.messagesBox.scrollTop =
           this.$el.querySelector(".messages-box").scrollHeight;
       });
@@ -180,7 +199,7 @@ export default {
       this.messages.push({
         author: this.username,
         avatar:
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcZsL6PVn0SNiabAKz7js0QknS2ilJam19QQ&usqp=CAU",
+          "https://i.pinimg.com/originals/35/79/3b/35793b67607923a68d813a72185284fe.jpg",
         content: this.value,
         datetime: moment().format("HH:mm"),
       });
@@ -188,7 +207,6 @@ export default {
       this.socket.emit("newMessage", {
         author: this.username,
         content: this.value,
-        // datetime: moment(),
         datetime: moment(),
       });
 
@@ -199,6 +217,8 @@ export default {
 
     handleChange(e) {
       this.value = e.target.value;
+      this.socket.emit("typing", this.username);
+
       if (this.value.length == 0) {
         if (this.disabledBtn == false) this.disabledBtn = true;
       } else {
@@ -209,7 +229,6 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .content {
   margin: 0 auto;
@@ -220,6 +239,26 @@ export default {
 .content .messages-box {
   height: 400px;
   overflow: auto;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #c3c3c3;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #999999;
 }
 
 .content .message {

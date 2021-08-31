@@ -34,11 +34,14 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("newUserJoinedToChat", username);
   })
 
+  socket.on("typing", (username) => {
+    socket.broadcast.emit("userTyping", username);
+  })
+
   socket.on("newMessage", async (data) => {
     let message = {
       author: data.author,
-      avatar:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcZsL6PVn0SNiabAKz7js0QknS2ilJam19QQ&usqp=CAU",
+      avatar:"https://i.pinimg.com/originals/35/79/3b/35793b67607923a68d813a72185284fe.jpg",
       content: data.content,
       datetime: data.datetime,
     };
